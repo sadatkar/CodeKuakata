@@ -1,0 +1,7 @@
+vncserver :39 -name desktop-SK -geometry 1280x800 -depth 24
+vncserver :40 -name desktop-ecmadm -geometry 1280x800 -depth 24
+
+then modify xstartup file if you need to see the normal desktop
+
+
+vncserver :40 -name desktop-oracle -geometry 1280x800 -depth 24

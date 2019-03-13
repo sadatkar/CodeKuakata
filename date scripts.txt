@@ -1,0 +1,10 @@
+date +"%d-%m-%Y %H:%M %p"
+
+purgedate=$(date --date="15 day ago" +"%d-%m-%Y %H:%M %p")
+
+purgedate=$(date --date="15 day ago" +"%d-%m-%Y")
+purgeBTime=$(date --date="12:01 AM" +"%I:%M %p")
+purgeETime=$(date --date="11:59 PM" +"%I:%M %p")
+purgeBDttm=`echo $purgedate $purgeBTime`
+purgeEDttm=`echo $purgedate $purgeETime`
+echo $purgeBDttm $purgeEDttm

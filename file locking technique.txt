@@ -1,0 +1,3 @@
+There are lots of file operation system calls with absolute guarantees of atomicity. The link system call is the one most often used in locking techniques. First create a temporary file in a well known directory. Then attempt to link() it to a well known name. If two processes try this at the same time, one will succeed and the other fail. If the link works, you own the lock. 
+
+For file updates, you can link the file to a lock file. Programs that update /etc/passwd and /etc/shadow often use this technique. They try to link /etc/passwd to /etc/opasswd and /etc/shadow to /etc/oshadow. Using truss and strace, I see that redhat linux and Solaris 8 are still doing that. This was the original way to lock files between cooperating processes.

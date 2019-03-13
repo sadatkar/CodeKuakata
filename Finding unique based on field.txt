@@ -1,0 +1,5 @@
+##Finding unique based on field then sort on a field
+awk -F "," '!arr[$3]++' all.csv|sort -t, -k3>all.srt
+
+sort -n -u -t\; -k1 Vendor.csv>>Vendor1.csv
+

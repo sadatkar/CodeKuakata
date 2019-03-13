@@ -1,0 +1,29 @@
+j06834> free
+             total       used       free     shared    buffers     cached
+Mem:      12298508    7761792    4536716          0     455200    3938756
+-/+ buffers/cache:    3367836    8930672
+Swap:      1048568          0    1048568
+
+From: http://serverfault.com/questions/85470/meaning-of-the-buffers-cache-line-in-the-output-of-free
+
+The first line means:
+
+total: Your total (physical) RAM (excluding a small bit that the kernel permanently reserves for itself at startup); that's why it shows ca. 11.7 GiB , and not 12 GiB, which you probably have.
+used: memory in use by the OS.
+free: memory not in use.
+total = used + free
+
+shared / buffers / cached: This shows memory usage for specific purposes, these values are included in the value for used.
+
+The second line gives first line values adjusted. It gives the original value for used minus the sum buffers+cached and the original value for free plus the sum buffers+cached, hence its title. These new values are often more meaningful than those of first line.
+
+The last line (Swap:) gives information about swap space usage (i.e. memory contents that have been temporarily moved to disk).
+
+To actually understand what the numbers mean, you need a bit of background about the virtual memory (VM) subsystem in Linux. Just a short version: Linux (like most modern OS) will always try to use free RAM for caching stuff, so Mem: free will almost always be very low. Therefore the line -/+ buffers/cache: is shown, because it shows how much memory is free when ignoring caches; caches will be freed automatically if memory gets scarce, so they do not really matter.
+
+A Linux system is really low on memory if the free value in -/+ buffers/cache: line gets low.
+
+For more details about the meaning of the numbers, see e.g. the questions:
+
+In Linux, what is the difference between "buffers" and "cache" reported by the free command?
+Why does Red Hat Linux report less free memory on the system than is actually available?

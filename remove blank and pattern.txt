@@ -1,0 +1,1 @@
+sed -e 's/\.*//g' -e '/^$/d' test36_52.txt>test36_52.txt1

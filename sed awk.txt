@@ -1,0 +1,108 @@
+echo "Deploy Application DB DDL start"
+echo "SNIBLD_WLSHOME=${SNIBLD_WLSHOME}"
+echo "SNIBLD_ORACLE_JDBCJAR=${SNIBLD_ORACLE_JDBCJAR}"
+export SNIBLD_WORK_DIR=$PWD
+export SNIBLD_EXECUTE_DBDDL=true
+echo "SNIBLD_WORK_DIR=${SNIBLD_WORK_DIR}"
+
+#Prepare ddl sql files per environment variable found
+sqlScriptDir=$SNIBLD_WORK_DIR"/deliver/sql"
+echo "sqlScriptDir="$sqlScriptDir
+sqlfileAry=(`find $sqlScriptDir -iname \*.sql -type f`)
+
+sniBldEnvPropFile=${anthill3/root.dir}"/SNICustomBuildDeploy/properties/"$SNIBLD_RT_ENV"/SNIBuildEnv.properties"
+echo "sniBldEnvPropFile="$sniBldEnvPropFile
+
+#Parse input using awk, assign into array, then process each environment variable
+sniBldEnvPropNamAry=(`awk 'BEGIN{FS = "="} !/#/{ envPropNam=$1; print envPropNam; }'<$sniBldEnvPropFile`)
+
+sedStr=""
+for i in "${sniBldEnvPropNamAry[@]}"
+do
+	sniBldEnvPropNamStr=$i	
+	echo "sniBldEnvPropNamStr="$sniBldEnvPropNamStr
+	echo "sniBldEnvPropFile="$sniBldEnvPropFile
+    mtchEnvProp=`grep $sniBldEnvPropNamStr $sniBldEnvPropFile`
+	envPropKey=`echo $mtchEnvProp|cut -d= -f1`
+	envPropVal=`echo $mtchEnvProp|cut -d= -f2`
+	echo "Matched sniBldEnvPropNam="$envPropKey" sniBldEnvPropVal="$envPropVal
+    sedStr=$sedStr" -e 's~$envPropKey~$envPropVal~g'"
+done
+
+for sqlfile in "${sqlfileAry[@]}"
+do
+	myStr="$sedStr<$sqlfile>$sqlfile.tmp"
+        echo "myStr="$myStr
+        eval sed $myStr
+	rm $sqlfile
+	mv $sqlfile.tmp $sqlfile
+done
+
+. ${SNIBLD_DOMAINHOME}/bin/setDomainEnv.sh
+DOM4J_JAR=/opt/opensource/dom4j/dom4j-1.6.1.jar
+JAXEN_JAR=/opt/opensource/jaxen/jaxen-1.1.1.jar
+ANT_LIB=/opt/opensource/apache-ant/lib
+CP="${SNIBLD_ORACLE_JDBCJAR}:${ANT_LIB}/ant.jar:${ANT_LIB}/ant-launcher.jar:${DOM4J_JAR}:${JAXEN_JAR}"
+if [ ! -z "$CLASSPATH" ]
+then
+        CP=${CP}:$CLASSPATH
+fi
+echo "CP=${CP}"
+cd /opt/anthill3/agent/SNICustomBuildDeploy/scripts/jython
+"${JAVA_HOME}/bin/java" -Dweblogic.RootDirectory=$SNIBLD_DOMAINHOME ${SNIBLD_PYTHON_HOME} -Dpython.path=${SNIBLD_WLSHOME}/wlserver_10.3/common/wlst/modules -classpath "${CP}" org.python.util.jython -i  DeployDBDDL.py processSqlFiles
+
+
+***************************************
+
+
+echo "Deploy Application DB DDL start"
+echo "SNIBLD_WLSHOME=${SNIBLD_WLSHOME}"
+echo "SNIBLD_ORACLE_JDBCJAR=${SNIBLD_ORACLE_JDBCJAR}"
+export SNIBLD_WORK_DIR=$PWD
+export SNIBLD_EXECUTE_DBDDL=true
+echo "SNIBLD_WORK_DIR=${SNIBLD_WORK_DIR}"
+export SNIBLD_RT_DB_SCHEMA_LST=${SNIBLD_RT_DB_SCHEMA_LST}
+echo "SNIBLD_RT_DB_SCHEMA_LST="$SNIBLD_RT_DB_SCHEMA_LST
+
+#Prepare ddl sql files per DB/Schema combination supplied
+#Parse input using awk, assign into array, then process each key=value
+sqlScriptDir=$SNIBLD_WORK_DIR"/deliver/sql"
+echo "sqlScriptDir="$sqlScriptDir
+dbschmaAry=(`echo "$SNIBLD_RT_DB_SCHEMA_LST"|awk 'BEGIN{FS = ":"} { for (i = 1; i <= NF; i++)  print $i }'`)
+sqlfileAry=(`find $sqlScriptDir -iname \*.sql -type f`)
+
+for i in "${dbschmaAry[@]}"
+do
+	dbschmaStr=$i
+	db=`echo $dbschmaStr|cut -d, -f1`
+	schma=`echo $dbschmaStr|cut -d, -f2`
+	echo "Creating sql file for database: "$db" and schema: "$schma
+	for sqlfile in "${sqlfileAry[@]}"
+	do
+		newsqlfile=`dirname $sqlfile`"/"`basename $sqlfile .sql`"_"$db"_"$schma".sql"
+		awk 'BEGIN{FS=" "; oldschmaStr=""} {if (match($0, /.*CREATE.* .*\..*/)) {n=split($0,sqlln_ary," "); for (i=1;i<=n;i++) {if (sqlln_ary[i] ~ /.*\..*/) {split(sqlln_ary[i],schma_ary,"."); oldschmaStr=schma_ary[1];}} print $0;} else {gsub(" "oldschmaStr"\\.", " "schma"."); gsub(" \""oldschmaStr"\"\\.", " "schma"."); print}}' schma="$schma" - <$sqlfile>$newsqlfile.tmp
+		sed -e 's/\(.*\)@DATABASE: \(.*\)/\1@DATABASE: '$db'/' -e 's/\(.*CREATE.* \)\(.*\)\(\..*\)/\1'$schma'\3/'<$newsqlfile.tmp>$newsqlfile
+		rm $newsqlfile.tmp
+	done
+done
+#Remove original sql files so that they don't get processed
+for sqlfile in "${sqlfileAry[@]}"
+do
+	rm $sqlfile
+done
+
+. ${SNIBLD_DOMAINHOME}/bin/setDomainEnv.sh
+DOM4J_JAR=/opt/opensource/dom4j/dom4j-1.6.1.jar
+JAXEN_JAR=/opt/opensource/jaxen/jaxen-1.1.1.jar
+ANT_LIB=/opt/opensource/apache-ant/lib
+CP="${SNIBLD_ORACLE_JDBCJAR}:${ANT_LIB}/ant.jar:${ANT_LIB}/ant-launcher.jar:${DOM4J_JAR}:${JAXEN_JAR}"
+if [ ! -z "$CLASSPATH" ]
+then
+        CP=${CP}:$CLASSPATH
+fi
+echo "CP=${CP}"
+cd /opt/anthill3/agent/SNICustomBuildDeploy/scripts/jython
+"${JAVA_HOME}/bin/java" -Dweblogic.RootDirectory=$SNIBLD_DOMAINHOME ${SNIBLD_PYTHON_HOME} -Dpython.path=${SNIBLD_WLSHOME}/wlserver_10.3/common/wlst/modules -classpath "${CP}" org.python.util.jython -i  DeployDBDDL.py processSqlFiles
+
+
+

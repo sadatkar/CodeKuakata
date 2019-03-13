@@ -1,0 +1,12 @@
+find /your_directory -mtime +1-exec rm -f {} \;
+
+find /path/dir -name "*.bz2" -type f -Btime +30d -delete 
+
+find /path/dir -mtime +30 -delete
+
+find /var/schneider/share/ucm/content/secured/ebs/success -mtime +1 -delete
+find /var/schneider/share/ucm/content/unsecured/ebs/success -mtime +1 -delete
+
+
+
+. /opt/schneider/applications/EBSUCMResources/EBSUCMExtResources/scripts/CleanupOldFiles.sh /var/schneider/share/ucm/content/secured/ebs/success/,/var/schneider/share/ucm/content/unsecured/ebs/success/ 1

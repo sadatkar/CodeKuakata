@@ -1,0 +1,1 @@
+grep CHECKIN_WORK__ebs_true_ $1|sed -e 's/.*\(CHECKIN_WORK__ebs_true_[0-9]*_.*_[0-9]* \)[|].*/\1/g'|sort|uniq>ThrdCnt.txt

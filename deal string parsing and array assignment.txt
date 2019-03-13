@@ -1,0 +1,13 @@
+#Dual delimeters
+echo x,1:y,2:z,3:|awk 'BEGIN{RS = ":"; FS = ","} {print $0; print $1; print $2;}'
+
+#Parse input using awk, assign into array, then process each key=value
+dbschmaAry=(`echo x,1:y,2:z,3|awk 'BEGIN{FS = ":"} { for (i = 1; i <= NF; i++)  print $i }'`)
+
+for i in "${dbschmaAry[@]}"
+do
+	dbschmaStr=$i
+	db=`echo $dbschmaStr|cut -d, -f1`
+	schma=`echo $dbschmaStr|cut -d, -f2`
+	echo "Creating sql file for database: "$db" and schema: "$schma
+done

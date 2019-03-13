@@ -1,0 +1,23 @@
+What I do and there may be better ways..
+
+
+create the user
+
+useradd -d /home/user user
+
+then as root run:
+visudo
+
+in the file you will see
+root ALL=(ALL) ALL
+
+add a line below that line that has
+user ALL=(ALL) ALL
+
+* replace "user" with the username you want.
+
+then when you want to do some admin level work you would just use sudo before the command.
+
+sudo /sbin/shutdown -r now
+
+
