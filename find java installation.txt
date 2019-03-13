@@ -1,0 +1,8 @@
+use the following command;
+
+which java
+
+aAlso you can use below; 
+ 
+ do a "ls -l /usr/bin/java"
+  /usr/bin/java is a symbolic link to the actual java executable

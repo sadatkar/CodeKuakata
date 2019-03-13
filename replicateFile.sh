@@ -1,42 +1,40 @@
-#!/bin/bash
-#set -x
+#!/bin/ksh
+set -x
 
 if [ $# -lt 2 ]
 then
-    echo "usage $0 repCount baseFile"
+    echo "usage $0 metaFName replicaFName replicaCnt"
     exit
 fi
 
-idx=0
-fileNamCntr=0
-filelst=`ls *.meta`
+## filter out data
+metaFName=$1
+replicaFName=$2
+metaFIdxLoc=`expr index $metaFName _`
+metaFIdx=`expr substr $metaFName `expr $metaFIdxLoc + 1` 1`
+metaFNamPart=`expr substr $metaFName 1 $metaFIdxLoc`
+metaFExtnPart=`expr substr $metaFName `expr $metaFIdxLoc + 2` `expr length $metaFName``
 
-for file in $filelst
+while
+	if [ -f "idfile" ]
+	then
+	set -- $(awk '{ print $1 }'<"idfile"; awk '{ print $1 }'<"cntfile")
+	nextid=$1
+	cnt=$2
+	echo $nextid","$cnt
+	fi
+        [ $metaFIdx -lt $3 ]
 do
-    while
-        [ $idx -le $1 ]
-        do
-          (( idx++ ))
-          echo idx is $idx
-          newname=`echo $file|sed -e 's/.*/Public_'$idx'.meta/g'`
-          echo new file name is $newname
-          cp $file $newname
-          sed -e 's/dDocName=RPT_PUBLIC_[0-9]*/dDocName=RPT_PUBLIC_'$idx'/' -e 's/\(FileList=Public_\)[0-9]*\(.txt,Public_\)[0-9]*\(.txt\)/\1'`expr $idx + 1`'\2'`expr $idx + 2`'\3/g' -e 's/\(DocTitleList=Public_RPT_\)[0-9]*\(,Public_RPT_\)[0-9]/\1'`expr $idx + 1`'\2'`expr $idx + 2`'/g' -e 's/xRqtId=EBS_*/xRqtId=EBS_'$idx'/' -e 's/xPrntRqtId=PRNT_EBS_*/xPrntRqtId=PRNT_EBS_'$idx'/'<$newname>$newname.sed
-          mv -f $newname.sed $newname
-          if [ $idx -eq 1 ]
-          then
-            fileNamCntr=`expr $idx + 1`
-          else
-            fileNamCntr=`expr $fileNamCntr + 1`
-          fi
-          newFNamIdx1=$fileNamCntr
-          fileNamCntr=`expr $fileNamCntr + 1`
-          newFNamIdx2=$fileNamCntr
-          echo $fileNamCntr $newFNamIdx1 $newFNamIdx2
-          newFNam1=`echo $2|sed -e 's/\([^0-9]*\)[0-9]*\(.txt\)/\1'$newFNamIdx1'\2/'`
-          newFNam2=`echo $2|sed -e 's/\([^0-9]*\)[0-9]*\(.txt\)/\1'$newFNamIdx2'\2/'`
-          echo $newFNam1 $newFNam2
-          cp $2 $newFNam1
-          cp $2 $newFNam2
-        done
+	metaFIdx=`expr $metaFIdx + 1`
+	newMetaFName=$metaFNamPart$metaFIdx$metaFExtnPart
+nawk 'BEGIN{FS=",";id='$nextid';idx='$cnt'}
+      {
+        previd=$1;
+        id=id+5;
+        idx=idx+1;
+        gsub(previd,id,$0);
+        print $0;
+      }
+	END{print id > "idfile"; print idx > "cntfile";}' <$1>>$1.out
 done
+

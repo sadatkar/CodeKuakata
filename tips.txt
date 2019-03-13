@@ -1,0 +1,16 @@
+ gzip -c file1  > foo.gz
+
+
+finding files containing text
+
+find . -type f -name "*.ext" -exec grep -il "hello" {} \
+
+
+#concatenate line with ,
+sed '$!N;s/\n/,/'
+#getting file extension
+sed 's/\(.*\)\..*/\1/'
+
+
+unzip source.zip "*.[fch]" Makefile -d /tmp
+unzip -C source.zip "*.[fch]" makefile -d /tmp

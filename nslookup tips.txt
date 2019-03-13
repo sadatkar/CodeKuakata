@@ -1,0 +1,28 @@
+
+
+
+
+
+
+
+//****unix
+To get this info you need to run 3 commands:
+  root # nslookup
+Default Server:  cbcdhcp1.schneider.com
+Address:  161.222.1.35
+
+> ls -a schneider.com > /tmp/alldns
+[cbcdhcp1.schneider.com]
+Received 6 answers (1517 records).
+> q
+Server:  cbcdhcp1.schneider.com
+Address:  161.222.1.35
+
+*** cbcdhcp1.schneider.com can't find q: Non-existent host/domain
+> exit
+CBCsunadmin:/home/c01393/perl
+root # grep uxprf340 /tmp/alldns
+sbprf1a                 8H IN CNAME     uxprf340
+sbprf1a1                8H IN CNAME     uxprf340
+
+

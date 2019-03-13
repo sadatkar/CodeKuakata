@@ -1,0 +1,4 @@
+find . -mtime +1 -exec mv {} /var/schneider/Imaging/EDMSBatch/20100625backup \;
+
+find ./ -name xercesImpl.jar -type f -print
+find ./ -name xercesImpl.jar -type f -print0

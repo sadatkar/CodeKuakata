@@ -1,0 +1,3 @@
+How to set keyboard shortcut in BASH like KSH
+
+# set -o vi
